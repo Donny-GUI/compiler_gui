@@ -2,7 +2,7 @@ from font import Font
 from outputtextbox import OutputTextBox
 from asset import Asset
 from gif import AnimatedGif
-from lib import Nuikta, Pyinstaller
+from lib import Nuikta, Pyinstaller, Operation
 from error import ErrorString
 from instructions import get_bytecode_instructions
 from scrollable_table import ScrollableTable
@@ -85,8 +85,23 @@ class CompilerGui(ctk.CTk):
         self.decompiler_filebrowse_entry.grid(row=0, column=1, sticky="we") 
         self.decompiler_filebrowse_browse_button = ctk.CTkButton(self.tab_frames["Decompiler"], text="Browse", command=self.decompiler_browse_file)
         self.decompiler_filebrowse_browse_button.grid(row=0, column=2, sticky="e") 
-        self.decompiler_filebrowse_text_box = ScrollableTable(master= self.tab_frames["Decompiler"], width=900, height=700)
+        self.decompiler_filebrowse_text_box = ScrollableTable(master= self.tab_frames["Decompiler"], width=850, height=500)
         self.decompiler_filebrowse_text_box.grid(row=1, column=0, columnspan=3, sticky="nsew")
+        self.decompiler_description_box = ctk.CTkTextbox(master=self.tab_frames["Decompiler"], width=700, height=300)
+        self.decompiler_description_box.grid(row=2, column=1, columnspan=3)
+        self.decompiler_description_title_label = ctk.CTkLabel(master=self.tab_frames["Decompiler"], text="Name: None")
+        self.decompiler_description_title_label.grid(row=2, column=0)
+    
+    def set_operation_description(self, name):
+        text = "Name: " + name
+        self.decompiler_description_title_label.configure(text=text)
+        print(text)
+        try:
+            opcode = Operation.code_map[name]
+        except KeyError:
+            return
+        self.decompiler_description_box.delete("0.0", "end")
+        self.decompiler_description_box.insert("0.0", opcode)
     
     def decompiler_browse_file(self, *args):
         self.decompiler_path = ctk.filedialog.askopenfile()
@@ -107,7 +122,7 @@ class CompilerGui(ctk.CTk):
                 # get the bytecode instructions
                 self.decompiler_lines = get_bytecode_instructions(self.decompiler_path)
                 self.decompiler_filebrowse_text_box.set_data(self.decompiler_lines)
-                    
+                self.decompiler_filebrowse_text_box.assign_command_to_column(0, self.set_operation_description)
                     
                 
     def setup_tabs(self, *args):

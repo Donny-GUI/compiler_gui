@@ -4,40 +4,57 @@ from customtkinter.windows.widgets.font import CTkFont
 
 
 class Cell(ctk.CTkEntry):
-    def __init__(self, master: any, x, y, data=None, width: int = 100, height: int = 50, corner_radius: int | None = 0, border_width: int | None = 1, bg_color: str | Tuple[str, str] = "transparent", fg_color: str | Tuple[str, str] | None = None, border_color: str | Tuple[str, str] | None = None, text_color: str | None = None, scrollbar_button_color: str | Tuple[str, str] | None = None, scrollbar_button_hover_color: str | Tuple[str, str] | None = None, font: tuple | CTkFont | None = None, activate_scrollbars: bool = True, **kwargs):
+    def __init__(self, master: any, x, y, data, width, bg_color: str | Tuple[str, str] = "transparent", fg_color: str | Tuple[str, str] | None = None, border_color: str | Tuple[str, str] | None = None, text_color: str | None = None, **kwargs):
         self.x = x
         self.y = y
         self.data = data 
-        super().__init__(master, width=width, border_width=border_width, bg_color=bg_color, fg_color=fg_color, border_color=border_color, text_color=text_color, **kwargs)
+        super().__init__(master, width=width, bg_color=bg_color, fg_color=fg_color, border_color=border_color, border_width=0, corner_radius=0, text_color=text_color, **kwargs)
         if data is not None:
             self.set_value(data)
-        self.grid(column=x, row=y, padx=(0,1), pady=(0,1))
+        self.grid(column=x, row=y, padx=(0,1), pady=(0,0), ipadx=0, ipady=0)
         
     def set_value(self, value):
         self.data = value
         self.delete(0, "end")
         self.insert(0, self.data)
     
+    def assign_command(self, type, command:any):
+        self.bind(type, command)
+    
 class ScrollableTable(ctk.CTkScrollableFrame):
-    def __init__(self, master, width, height, column_widths: list[int] = [100, 25, 25, 200, 200, 45, 45, 40, 40]):
+    def __init__(self, master, width, height, column_widths: list[int] = [150, 40, 40, 200, 200, 50, 50, 50, 50]):
         super().__init__(master, width, height)
         self.max_lines = 300
         self.rows = []
-        self.map = {}
+        self.map: dict[str: list[Cell]] = {}
         self.data = []
         self.default_row_length = 51
         self.default_column_length = 8
         self.uuids = []
         self.column_widths = column_widths
+        
         for i in range(0, self.default_row_length):
             j = 0
-            self.uuid = str(i) + str(j)
+            self.uuid = str(i)
             self.uuids.append(self.uuid)
             self.map[self.uuid] = []
             for j in range(0, self.default_column_length):
                 self.map[self.uuid].append(Cell(master=self, x=j, y=i, width=column_widths[j], data="        "))
-                
     
+    def assign_command_to_row(self, uuid: str, command: any):
+        for value in self.map[uuid]:
+            value: Cell
+            value.assign_command(command)
+    
+    def assign_command_to_all(self, command):
+        for uuid in self.uuids:
+            self.assign_command_to_row(uuid, command)
+    
+    def assign_command_to_column(self, column_index, command, type='<Button-1>'):
+        for key in self.map.keys():
+            
+            self.map[key][column_index].assign_command(type, command(self.map[key][column_index].data))
+            
     def set_data(self, data: list[list[str]]):
         self.data = data
         # get the new column length
@@ -73,8 +90,9 @@ class ScrollableTable(ctk.CTkScrollableFrame):
                 x = 0
                 # create the new row
                 y = self.default_row_length + i
-                uuid = str(y) + str(x)
+                uuid = str(y)
                 self.map[uuid] = []
+                self.uuids.append(uuid)
                 # for integer in column_length append the new cell to the row
                 for j in range(0, self.default_column_length):
                     self.map[uuid].append(Cell(master=self, x=j, y=i, width=self.column_widths[j],  data="        "))
@@ -84,7 +102,7 @@ class ScrollableTable(ctk.CTkScrollableFrame):
         # programmatically add the data to the cells
         for i in range(0, row_length):
             j = 0 
-            uuid = str(i) + str(j)
+            uuid = str(i)
             for j in range(0, self.default_column_length):
-                self.map[uuid][j].set_value(data[i][j])
+                self.map[uuid][j].set_value(self.data[i][j])
                 
