@@ -4,6 +4,8 @@ from asset import Asset
 from gif import AnimatedGif
 from lib import Nuikta, Pyinstaller
 from error import ErrorString
+from instructions import get_bytecode_instructions
+from scrollable_table import ScrollableTable
 
 import os
 from typing import Tuple
@@ -74,8 +76,40 @@ class CompilerGui(ctk.CTk):
     #////////////////////////////////////////////////////////////////
     
     def setup_decompiler_tab(self):
-        pass
+        self.decompiler_path = ""
+        self.decompiler_lines = []
+        self.decompiler_file_path_string = ctk.StringVar()
+        self.decompiler_filebrowse_label = ctk.CTkLabel(self.tab_frames["Decompiler"], text="Select a file:")
+        self.decompiler_filebrowse_label.grid(row=0, column=0, sticky="w") 
+        self.decompiler_filebrowse_entry = ctk.CTkEntry(self.tab_frames["Decompiler"], textvariable=self.decompiler_file_path_string)
+        self.decompiler_filebrowse_entry.grid(row=0, column=1, sticky="we") 
+        self.decompiler_filebrowse_browse_button = ctk.CTkButton(self.tab_frames["Decompiler"], text="Browse", command=self.decompiler_browse_file)
+        self.decompiler_filebrowse_browse_button.grid(row=0, column=2, sticky="e") 
+        self.decompiler_filebrowse_text_box = ScrollableTable(master= self.tab_frames["Decompiler"], width=900, height=700)
+        self.decompiler_filebrowse_text_box.grid(row=1, column=0, columnspan=3, sticky="nsew")
     
+    def decompiler_browse_file(self, *args):
+        self.decompiler_path = ctk.filedialog.askopenfile()
+        try:
+            self.decompiler_path = self.decompiler_path.name
+        except AttributeError:
+            return
+        if self.decompiler_path is not None:
+            if not self.decompiler_path.endswith(".py"):
+                self.description_box.delete("0.0", "end")
+                self.description_box.insert("0.0", ErrorString.pyfile)
+                self.decompiler_path = "<path>"
+            if self.decompiler_path.endswith(".py"):
+                # clear the entry box
+                self.decompiler_filebrowse_entry.delete(0, "end")
+                # set the entry box
+                self.decompiler_filebrowse_entry.insert(0, self.decompiler_path)
+                # get the bytecode instructions
+                self.decompiler_lines = get_bytecode_instructions(self.decompiler_path)
+                self.decompiler_filebrowse_text_box.set_data(self.decompiler_lines)
+                    
+                    
+                
     def setup_tabs(self, *args):
         """ Creates all the necessary tabs for the application
         """

@@ -4,6 +4,22 @@ from dataclasses import dataclass
 LOGOPATH = f"{os.getcwd()}\\images\\logo.png"
 DARKLOGOPATH = f"{os.getcwd()}\\images\\darklogo.png"
 
+
+@dataclass(slots=True)
+class FileMode:
+    read = 'r'
+    write = 'w'
+    read_bytes = 'rb'
+    write_bytes = 'wb'
+    create = 'x'
+    append = 'a'
+
+@dataclass(slots=True)
+class CompileMode:
+    evaluate = 'eval'
+    execute = 'exec'
+    single = 'single'
+    
 @dataclass(slots=True)
 class Pyinstaller:
     flags = [

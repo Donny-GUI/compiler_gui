@@ -198,7 +198,7 @@ def dissemble_function(function_name: str, module=None) -> str|None:
     code = dis.Bytecode(func)
     lines = code.dis()
     
-    print(lines)
+    return lines
 
 dissemble_function('compile_python_file')
 
